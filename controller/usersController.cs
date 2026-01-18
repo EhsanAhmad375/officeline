@@ -94,5 +94,64 @@ namespace officeline.Controllers
                 
             }
         }
+        [HttpGet("profile")]
+        public async Task<ActionResult> getUserDetail()
+        {
+            try
+            {
+                var userDetail=await _users.GetUserDetailAsync();
+                return Ok(new {success=true,message="Retrive user detail successfully",data=userDetail});
+            }catch(ApiException ex)
+            {
+                return BadRequest(new {success=false,message="Retrive user detail successfully" ,
+                erros= new Dictionary<string,string>{{ex.FieldName,ex.Message}}});
+            }catch(Exception ex)
+            {
+                return BadRequest( new {success=false, erros=ex.Message});
+            }
+
+        }
+
+        [HttpPatch("update")]
+        public async Task<ActionResult> updateUser([FromBody] updateUserProfileDTO updateUser)
+        {
+            try
+            {
+                var user=await _users.UpdateUserProfile(updateUser);
+                return Ok(new {success=true,message="user updated successfully",data=user});
+            }catch(ApiException ex)
+            {
+                return BadRequest(new {success=false, message="Failed! user profile",
+                error=new Dictionary<string,string>{{ex.FieldName,ex.Message}}});
+            }catch(Exception ex)
+            {
+                return BadRequest(new {success=false, message="Failed! user profile", 
+                error=ex.Message});
+            }
+            
+        }
+
+        [Authorize(Roles="superadmin,admin")]
+        [HttpDelete("delete/{userId}")]
+        public async Task<ActionResult> deleteUser([FromRoute] int userId)
+        {
+            try
+            {
+                await _users.DeleteUser(userId);
+                return Ok(new {success=true,message="User Deleted Successully "});
+
+            }
+            catch (ApiException ex)
+            {
+                return BadRequest(new {success=false,error=new Dictionary<string,string> {{ex.FieldName,ex.Message}}});
+            }catch(Exception ex)
+            {
+                return BadRequest(new {success=false, error=ex.Message});
+            }
+        }
+
+
     }
+
+
 }

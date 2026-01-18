@@ -60,7 +60,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     
     });
 
-// 3. Controllers with Custom Model State Mapping
+    
+builder.Services.AddHttpContextAccessor();
+
+
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
     {

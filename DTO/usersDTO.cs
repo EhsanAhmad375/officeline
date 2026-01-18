@@ -53,6 +53,32 @@ namespace officeline.DTO
         public int? CompanyId {get;set;}
     }
 
+    public class GetUserDetailDTO
+    {
+        public int userId {get; set;}
+        public int? userNumber {get;set;}
+        public string? fName{get;set;}
+        public string? lName{get;set;}
+        public string? role{get;set;}
+        public string? email{get;set;}
+        public string? PhoneNumber{get;set;}
+        public string? dob{get;set;}
+        public int? CompanyId {get;set;}
+    }
+
+    public class updateUserProfileDTO
+    {
+        
+        
+        public string? fName{get;set;}
+        public string? lName{get;set;}
+        public string? PhoneNumber{get;set;}
+        public string? dob{get;set;}
+        
+
+    
+    }
+
 
 
     

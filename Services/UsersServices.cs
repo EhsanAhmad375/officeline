@@ -21,6 +21,11 @@ namespace officeline.Services;
         Task<LoginDetailsDTO> UserLoginAsync(LoginUserDTO loginUserDTO);
 
         Task<List<GetAllUsersDTO>> GetAllUsersAsync(string role, int companyId);
+
+        Task<GetUserDetailDTO> GetUserDetailAsync();
+        Task<GetUserDetailDTO> UpdateUserProfile(updateUserProfileDTO updateUser);
+
+        Task<bool> DeleteUser(int userId);
         
     }
 
@@ -30,10 +35,12 @@ public class Users : IUsers
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
-    public Users(AppDbContext context, IConfiguration configuration)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    public Users(AppDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _context=context;
         _configuration=configuration;
+        _httpContextAccessor=httpContextAccessor;
     }
 
     public async Task<CreateUserDTO> CreateUserAsync(CreateUserDTO createUserDTO, string creatorRole, int creatorCompanyId)
@@ -158,4 +165,87 @@ public class Users : IUsers
 
 
 
+    public async Task<GetUserDetailDTO> GetUserDetailAsync()
+    {
+        var userIdClaimed=_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaimed))
+        {
+            throw new ApiException("user","UnAuthorized");
+        }
+
+        int userId=int.Parse(userIdClaimed);
+
+        var userDetail=await _context.Users.Where(u=> u.userId==userId).
+        Select(u=> new GetUserDetailDTO
+        {
+            userId=u.userId,
+            userNumber=u.userNumber,
+            fName=u.fName,
+            lName=u.lName,
+            email=u.email,
+            role=u.role,
+            PhoneNumber=u.PhoneNumber,
+            dob=u.dob,
+            CompanyId=u.CompanyId
+        }).FirstOrDefaultAsync();
+
+        if (userDetail == null)
+        {
+            throw new ApiException("User", "User details not found.");
+        }
+        return userDetail;
+    }
+
+
+
+    public async Task<GetUserDetailDTO> UpdateUserProfile(updateUserProfileDTO updateUser)
+    {
+        var userIdClaimed=_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaimed))
+        {
+            throw new ApiException("user","Unauthorized access");
+        }
+
+        int userId=int.Parse(userIdClaimed);
+
+        var user=await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            throw new ApiException("user","user not found");
+        }
+
+            user.fName = updateUser.fName;
+            user.lName = updateUser.lName;
+            user.dob=updateUser.dob;
+            user.PhoneNumber=updateUser.PhoneNumber;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return new GetUserDetailDTO{
+                userId = user.userId,
+                fName = user.fName,
+                lName = user.lName,
+                email = user.email,
+                role = user.role,
+                CompanyId = user.CompanyId
+    };
+    }
+
+
+
+    public async Task<bool> DeleteUser(int UserId)
+    {
+        var user=await _context.Users.FindAsync(UserId);
+        if (user == null)
+        {
+            throw new ApiException("user","user not found");
+        }
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
 }
