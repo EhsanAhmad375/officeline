@@ -16,6 +16,7 @@ namespace officeline.Models
         public CompanyModel? Company {get;set;}
         public int? CompanyId {get;set;}
         public int? userNumber {get;set;}
+        public string? profile_pic{get;set;}
 
     }
 }

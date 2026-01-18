@@ -175,6 +175,8 @@ public class Users : IUsers
         }
 
         int userId=int.Parse(userIdClaimed);
+        var request = _httpContextAccessor.HttpContext?.Request;
+        var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
 
         var userDetail=await _context.Users.Where(u=> u.userId==userId).
         Select(u=> new GetUserDetailDTO
@@ -187,7 +189,10 @@ public class Users : IUsers
             role=u.role,
             PhoneNumber=u.PhoneNumber,
             dob=u.dob,
-            CompanyId=u.CompanyId
+            CompanyId=u.CompanyId,
+            profilepic=!string.IsNullOrEmpty(u.profile_pic) 
+                 ? $"{baseUrl}/uploads/profiles/{u.profile_pic}" 
+                 : $"{baseUrl}/uploads/profiles/default_avatar.png"
         }).FirstOrDefaultAsync();
 
         if (userDetail == null)
@@ -215,6 +220,37 @@ public class Users : IUsers
         {
             throw new ApiException("user","user not found");
         }
+        if (updateUser.profilepic != null && updateUser.profilepic.Length > 0)
+    {
+        // Folder path jahan image save hogi (wwwroot/uploads/profiles)
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
+        if (!Directory.Exists(uploadsFolder))
+        {
+             Directory.CreateDirectory(uploadsFolder);
+        }
+
+        // Unique file name banayein taaki overwrite na ho
+        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(updateUser.profilepic.FileName);
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        // File ko save karein
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await updateUser.profilepic.CopyToAsync(stream);
+        }
+
+        // Purani image delete karne ka logic (Optional but recommended)
+        if (!string.IsNullOrEmpty(user.profile_pic) && user.profile_pic != "default_avatar.png")
+        {
+            var oldPath = Path.Combine(uploadsFolder, user.profile_pic);
+            if (File.Exists(oldPath)) File.Delete(oldPath);
+        }
+
+        // Database column update karein
+        user.profile_pic = fileName; 
+    }
+    var request = _httpContextAccessor.HttpContext?.Request;
+    var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
 
             user.fName = updateUser.fName;
             user.lName = updateUser.lName;
@@ -229,7 +265,11 @@ public class Users : IUsers
                 lName = user.lName,
                 email = user.email,
                 role = user.role,
-                CompanyId = user.CompanyId
+                CompanyId = user.CompanyId,
+                profilepic=!string.IsNullOrEmpty(user.profile_pic) 
+                 ? $"{baseUrl}/uploads/profiles/{user.profile_pic}" 
+                 : $"{baseUrl}/uploads/profiles/default_avatar.png", 
+                
     };
     }
 

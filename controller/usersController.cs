@@ -113,7 +113,7 @@ namespace officeline.Controllers
         }
 
         [HttpPatch("update")]
-        public async Task<ActionResult> updateUser([FromBody] updateUserProfileDTO updateUser)
+        public async Task<ActionResult> updateUser([FromForm] updateUserProfileDTO updateUser)
         {
             try
             {

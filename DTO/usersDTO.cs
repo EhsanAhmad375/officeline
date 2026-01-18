@@ -61,6 +61,7 @@ namespace officeline.DTO
         public string? lName{get;set;}
         public string? role{get;set;}
         public string? email{get;set;}
+        public string? profilepic{get;set;}
         public string? PhoneNumber{get;set;}
         public string? dob{get;set;}
         public int? CompanyId {get;set;}
@@ -72,6 +73,8 @@ namespace officeline.DTO
         
         public string? fName{get;set;}
         public string? lName{get;set;}
+
+        public IFormFile? profilepic{get; set;}
         public string? PhoneNumber{get;set;}
         public string? dob{get;set;}
         

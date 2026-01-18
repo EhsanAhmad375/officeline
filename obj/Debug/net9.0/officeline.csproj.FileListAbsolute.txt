@@ -132,3 +132,4 @@
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/Microsoft.IdentityModel.Tokens.dll
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/System.IdentityModel.Tokens.Jwt.dll
 /Users/ehsanahmad/Documents/dotnet/officeline/obj/Debug/net9.0/officeline.sourcelink.json
+/Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/officeline.staticwebassets.runtime.json

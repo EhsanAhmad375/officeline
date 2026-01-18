@@ -112,6 +112,14 @@ builder.Services.AddScoped<officeline.Services.ICompanyServices, officeline.Serv
 builder.Services.AddScoped<officeline.Services.IUsers, officeline.Services.Users>(); 
 
 var app = builder.Build();
+app.UseStaticFiles();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
 
 // --- MIDDLEWARE PIPELINE (ORDER IS CRITICAL) ---
 
