@@ -95,7 +95,7 @@ namespace officeline.Controllers // 'officeline'
 
 
     
-        [Authorize()]
+        // [Authorize()]
         [HttpDelete("delete/{companyId}")]
         public async Task<ActionResult<bool>> DeleteCompany([FromRoute] int companyId)
         {
@@ -108,10 +108,13 @@ namespace officeline.Controllers // 'officeline'
             {
                 return NotFound(new {success=false,
                 errors=new Dictionary<string, string> {{ex.FieldName,ex.Message}}});
-            }catch(Exception ex)
-            {
-                return StatusCode(500, new {message="Internal Server Error"});
             }
+            catch(Exception ex)
+{
+    // Check karein inner exception mein kya likha hai
+    var innerException = ex.InnerException?.Message ?? "No inner exception";
+    return StatusCode(500, new { message = ex.Message, detail = innerException });
+}
             
         }
     

@@ -4,6 +4,8 @@ using officeline.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.HttpResults;
 using officeline.ErrorExceptions;   
+using officeline.repo;
+using Microsoft.AspNetCore.JsonPatch;
 namespace officeline.Services;
 
 public interface ICompanyServices
@@ -25,10 +27,13 @@ public interface ICompanyServices
 public class CompanyServices : ICompanyServices
 {
     private readonly AppDbContext _context;
+
+    private readonly ICompanyRepo _companyRepo;
     
-    public CompanyServices(AppDbContext context)
+    public CompanyServices(AppDbContext context, ICompanyRepo companyRepo)
     {
         _context = context;
+        _companyRepo = companyRepo;
     }
 
 
@@ -62,12 +67,21 @@ public class CompanyServices : ICompanyServices
 
     public async Task<List<CompaniesListDTO>> GetAllCompaniesAsync()
     {
-        var companiesList = await _context.Companies.Select(c=> new CompaniesListDTO
+        // var companiesList = await _context.Companies.Select(c=> new CompaniesListDTO
+        // {
+        //     CompanyId = c.CompanyId,
+        //     Name = c.Name,
+        //     Email = c.Email 
+        // }).ToListAsync();
+        var companies = await _companyRepo.GetAllCompaniesAsync();
+
+        var companiesList =companies.Select(c=> new CompaniesListDTO
         {
-            CompanyId = c.CompanyId,
-            Name = c.Name,
-            Email = c.Email 
-        }).ToListAsync();
+            CompanyId=c.CompanyId,
+            Name=c.Name??"",
+            Email=c.Email
+        }).ToList();
+        
 
         return companiesList; 
     }
@@ -76,37 +90,26 @@ public class CompanyServices : ICompanyServices
 
     public async Task<UpdateCompanyDTO> UpdateCompanyAsync(int companyId, UpdateCompanyDTO updateCompanyDTO)
     {
-        var company = await _context.Companies.FindAsync(companyId);
-        if(company == null)
+        var company = await _companyRepo.UpdateCompanyAsync(companyId, updateCompanyDTO);
+
+        if (company == null)
         {
-            throw new ApiException("CompanyId", "Company not found");
+            throw new ApiException("message","Company not found");
         }
-        company.Name = updateCompanyDTO.Name;
-        company.Email = updateCompanyDTO.Email;
-        company.Address = updateCompanyDTO.Address;
-        company.City = updateCompanyDTO.City;
-        company.State = updateCompanyDTO.State;
-        company.CompleteAddress = updateCompanyDTO.CompleteAddress;
-        company.ZipCode = updateCompanyDTO.ZipCode;
-        company.Country = updateCompanyDTO.Country;
-        company.PhoneNumber = updateCompanyDTO.PhoneNumber; 
-        await _context.SaveChangesAsync();
         return updateCompanyDTO;
     }
 
 
     public async Task<bool> deleteCompany(int companyId)
-    {
-        var company=await _context.Companies.FindAsync(companyId);
-        if (company == null)
-        {
-            throw new ApiException("message","Company not found");
-        }
+{
+    // 1. Repository ka method use karein (await ke sath)
+    var success = await _companyRepo.DeleteCompanyAsync(companyId);
 
-        _context.Companies.Remove(company);
-        await _context.SaveChangesAsync();
-        return true;
-        
-        
-    } 
+    if (!success)
+    {
+        throw new ApiException("message", "Company not found");
+    }
+
+    return true;
+} 
 }

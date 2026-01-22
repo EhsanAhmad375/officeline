@@ -133,3 +133,7 @@
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/System.IdentityModel.Tokens.Jwt.dll
 /Users/ehsanahmad/Documents/dotnet/officeline/obj/Debug/net9.0/officeline.sourcelink.json
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/officeline.staticwebassets.runtime.json
+/Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/Microsoft.AspNetCore.JsonPatch.dll
+/Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+/Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/Newtonsoft.Json.dll
+/Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/Newtonsoft.Json.Bson.dll

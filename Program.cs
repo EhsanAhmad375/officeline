@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using officeline.Data; 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models; // Security models ke liye
-
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Database Connection
@@ -108,8 +109,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // 5. Dependency Injection
+builder.Services.AddScoped<officeline.repo.ICompanyRepo, officeline.repo.CompanyRepo>();
 builder.Services.AddScoped<officeline.Services.ICompanyServices, officeline.Services.CompanyServices>();
 builder.Services.AddScoped<officeline.Services.IUsers, officeline.Services.Users>(); 
+builder.Services.AddControllers().AddNewtonsoftJson(); 
+
+
 
 var app = builder.Build();
 app.UseStaticFiles();

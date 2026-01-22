@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("officeline")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+121b3721c35dd8b068ad5a6e2545059226ccd094")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a2186bbd0aeeaa3f5a2bb8702c9b635d1f66981f")]
 [assembly: System.Reflection.AssemblyProductAttribute("officeline")]
 [assembly: System.Reflection.AssemblyTitleAttribute("officeline")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
