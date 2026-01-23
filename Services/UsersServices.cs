@@ -8,7 +8,8 @@ using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt; // JwtSecurityTokenHandler ke liye
+using System.IdentityModel.Tokens.Jwt; 
+using officeline.repo;
 using Microsoft.Extensions.Configuration;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
@@ -36,11 +37,15 @@ public class Users : IUsers
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    public Users(AppDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+    private readonly IUserRepo _userRepo;
+    private readonly ICompanyRepo _companyRepo;
+    public Users(AppDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IUserRepo userRepo, ICompanyRepo companyRepo )
     {
         _context=context;
         _configuration=configuration;
         _httpContextAccessor=httpContextAccessor;
+        _userRepo=userRepo;  
+        _companyRepo=companyRepo;
     }
 
     public async Task<CreateUserDTO> CreateUserAsync(CreateUserDTO createUserDTO, string creatorRole, int creatorCompanyId)
@@ -53,12 +58,12 @@ public class Users : IUsers
             }
             
         }
-        var emailExist=await _context.Users.AnyAsync(u=> u.email==createUserDTO.email);
+        var emailExist=await _userRepo.GetUserByEmailAsync(createUserDTO.email) != null;
         if (emailExist)
         {
             throw new ApiException("email",$"{createUserDTO.email} is already used");
         }
-        var isCompany=await _context.Companies.FindAsync(createUserDTO.CompanyId);
+        var isCompany=await _companyRepo.GetCompanyByIdAsync(createUserDTO.CompanyId);
         if (isCompany==null)
         {
             throw new ApiException("Company",$"Company not Found");
@@ -78,10 +83,11 @@ public class Users : IUsers
           email=createUserDTO.email,
           CompanyId=createUserDTO.CompanyId,
           userNumber=nextUserNumber,
+          role="employee", 
           password=hashPassword  
         };
-        await _context.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await _userRepo.AddUserAsync(user);
+        await _userRepo.SaveChangesAsync();
         createUserDTO.password=null;
         return createUserDTO;
     }
@@ -89,8 +95,8 @@ public class Users : IUsers
 
     public async Task<LoginDetailsDTO> UserLoginAsync(LoginUserDTO loginUserDTO)
     {
-        var user = await _context.Users
-        .FirstOrDefaultAsync(u => u.email == loginUserDTO.email);
+        // var user = await _context.Users.FirstOrDefaultAsync(u => u.email == loginUserDTO.email);
+        var user= await _userRepo.GetUserByEmailAsync(loginUserDTO.email);
 
     if (user == null)
     {
@@ -151,14 +157,7 @@ public class Users : IUsers
             role=u.role,
             CompanyId=u.CompanyId,
         }).ToListAsync();
-        // var users=await _context.Users.Select(u => new GetAllUsersDTO
-        // {
-        //     userId=u.userId,
-        //     fName=u.fName,
-        //     lName=u.fName,
-        //     role=u.role,
-        //     CompanyId=u.CompanyId
-        // }).ToListAsync();
+    
         return users;
     }
 

@@ -10,6 +10,7 @@ namespace officeline.DTO
 
         [Required(ErrorMessage ="Last Name is Required")]
         public string lName{get;set;}
+        public string? role{get;set;}
 
         [EmailAddress]
         [Required(ErrorMessage ="Email is Required")]

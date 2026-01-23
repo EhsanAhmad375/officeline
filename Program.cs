@@ -109,6 +109,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // 5. Dependency Injection
+builder.Services.AddScoped<officeline.repo.IUserRepo, officeline.repo.UserRepo>();
 builder.Services.AddScoped<officeline.repo.ICompanyRepo, officeline.repo.CompanyRepo>();
 builder.Services.AddScoped<officeline.Services.ICompanyServices, officeline.Services.CompanyServices>();
 builder.Services.AddScoped<officeline.Services.IUsers, officeline.Services.Users>(); 
