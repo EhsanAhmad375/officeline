@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Tester</title>
+</head>
+<body>
+    <h2>SignalR Chat Tester</h2>
+    <div id="status">Connecting...</div>
+    <hr>
+    <div id="log" style="white-space: pre-wrap; background: #eee; padding: 10px; height: 300px; overflow-y: auto;"></div>
+
+    <script>
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+        
+        // Aapka Token aur URL
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjI0IiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoidXNlckBleGFtcGxlLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImVtcGxveWVlIiwiQ29tcGFueUlkIjoiNSIsImV4cCI6MTc2OTQxMzQxNSwiaXNzIjoib2ZmaWNlbGluZSIsImF1ZCI6Im9mZmljZWxpbmVfdXNlcnMifQ.P9PMuWFwn1XGT4jzBxa-j2IUy8XjKbXghX0pLlqw-5o";
+        const url = `ws://localhost:5100/chatsHub?skipNegotiation=true&transport=webSockets&access_token=${token}`;
+
+        const socket = new WebSocket(url);
+        const RS = "\x1e"; // Asli Record Separator jo Postman nahi bhej pa raha
+
+        socket.onopen = () => {
+            statusDiv.innerHTML = "<b style='color:green'>CONNECTED</b>";
+            // Step 1: Handshake
+            const handshake = JSON.stringify({"protocol":"json","version":1}) + RS;
+            socket.send(handshake);
+            logDiv.innerHTML += "Sent Handshake...\n";
+        };
+
+        socket.onmessage = (event) => {
+            logDiv.innerHTML += "Received: " + event.data + "\n";
+            
+            // Step 2: Agar handshake ok hai (type 0), to message bhejo
+            if (event.data.includes('"type":0')) {
+                const chatMessage = {
+                    "type": 1,
+                    "target": "SendPrivateMessage",
+                    "arguments": [{
+                        "receiverId": 24, // Yahan receiver ki ID likhein
+                        "message": "Assalam-o-Alaikum! Browser se test message."
+                    }]
+                };
+                socket.send(JSON.stringify(chatMessage) + RS);
+                logDiv.innerHTML += "Sent Private Message to User 24\n";
+            }
+        };
+
+        socket.onerror = (error) => {
+            statusDiv.innerHTML = "<b style='color:red'>ERROR</b>";
+            console.error(error);
+        };
+
+        socket.onclose = () => {
+            statusDiv.innerHTML = "<b style='color:gray'>DISCONNECTED</b>";
+        };
+    </script>
+</body>
+</html>

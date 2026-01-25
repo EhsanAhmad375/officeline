@@ -4,9 +4,10 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using officeline.Data; 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models; // Security models ke liye
+using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.DependencyInjection;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Database Connection
@@ -26,46 +27,56 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
+
         options.Events = new JwtBearerEvents
         {
+            // --- SIGNALR TOKEN LOGIC START ---
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatsHub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
+            // --- SIGNALR TOKEN LOGIC END ---
+
             OnChallenge = context =>
             {
-                // Default behavior ko skip karein
                 context.HandleResponse();
-
-                // Custom response set karein
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
-                
-                var result = System.Text.Json.JsonSerializer.Serialize(new { 
-                    success = false, 
-                    message = "Unauthorized " 
-                });
-
+                var result = System.Text.Json.JsonSerializer.Serialize(new { success = false, message = "Unauthorized " });
                 return context.Response.WriteAsync(result);
             },
             OnForbidden = context =>
-    {
-        context.Response.StatusCode = 403;
-        context.Response.ContentType = "application/json";
-        var result = System.Text.Json.JsonSerializer.Serialize(new { 
-            success = false, 
-            message = "You are not authorized to access this resource."
-
-        });
-        return context.Response.WriteAsync(result);
-    }
-            
+            {
+                context.Response.StatusCode = 403;
+                context.Response.ContentType = "application/json";
+                var result = System.Text.Json.JsonSerializer.Serialize(new { success = false, message = "You are not authorized to access this resource." });
+                return context.Response.WriteAsync(result);
+            }
         };
-        
-    
     });
 
-    
 builder.Services.AddHttpContextAccessor();
 
+// SignalR Service add karein
+builder.Services.AddSignalR();
+builder.Services.AddCors(options => {
+    options.AddPolicy("SignalRPolicy", policy => {
+        policy.WithOrigins("http://localhost:5100", "http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 builder.Services.AddControllers()
+    .AddNewtonsoftJson()  
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -80,12 +91,11 @@ builder.Services.AddControllers()
         };
     });
 
-// 4. Swagger with JWT Support
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "OfficeLine API", Version = "v1" });
-
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -93,9 +103,8 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme. Enter 'token' only."
+        Description = "JWT Authorization header. Enter 'token' only."
     });
-
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -115,9 +124,6 @@ builder.Services.AddScoped<officeline.Services.ICompanyServices, officeline.Serv
 builder.Services.AddScoped<officeline.Services.IUsers, officeline.Services.Users>(); 
 builder.Services.AddScoped<officeline.repo.IChatRepo, officeline.repo.ChatsRepo>();
 builder.Services.AddScoped<officeline.Services.IChatService, officeline.Services.ChatService>();
-builder.Services.AddControllers().AddNewtonsoftJson(); 
-
-
 
 var app = builder.Build();
 app.UseStaticFiles();
@@ -129,22 +135,23 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
-// --- MIDDLEWARE PIPELINE (ORDER IS CRITICAL) ---
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(); 
 }
 
-// Order: Routing -> Authentication -> Authorization -> Map
 app.UseRouting(); 
-
+app.UseCors("SignalRPolicy");
+// Authentication pehle, phir Authorization
 app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers(); 
 
 app.MapGet("/", () => "OfficeLine API is Fixed and Secured!");
+
+// SignalR Hub ka route map karein
+app.MapHub<officeline.Hubs.ChatsHub>("/chatsHub");
 
 app.Run();
