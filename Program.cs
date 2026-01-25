@@ -113,6 +113,8 @@ builder.Services.AddScoped<officeline.repo.IUserRepo, officeline.repo.UserRepo>(
 builder.Services.AddScoped<officeline.repo.ICompanyRepo, officeline.repo.CompanyRepo>();
 builder.Services.AddScoped<officeline.Services.ICompanyServices, officeline.Services.CompanyServices>();
 builder.Services.AddScoped<officeline.Services.IUsers, officeline.Services.Users>(); 
+builder.Services.AddScoped<officeline.repo.IChatRepo, officeline.repo.ChatsRepo>();
+builder.Services.AddScoped<officeline.Services.IChatService, officeline.Services.ChatService>();
 builder.Services.AddControllers().AddNewtonsoftJson(); 
 
 

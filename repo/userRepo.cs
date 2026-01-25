@@ -11,8 +11,9 @@ namespace officeline.repo
         Task<List<UsersModel>> GetAllUsersAsync();
         Task<UsersModel> GetUserByIdAsync(int id);
         Task<UsersModel> GetUserByEmailAsync(string email);
+        Task<int> GetMaxUserNumerOfACompanyAsync(int companyId);
         Task<UsersModel> AddUserAsync(UsersModel user);
-        Task<UsersModel> UpdateUserProfileAsync(int id, updateUserProfileDTO user);
+        Task UpdateUserAsync(UsersModel user);
         Task<bool> DeleteUserAsync(int id);
 
         Task SaveChangesAsync();
@@ -44,37 +45,38 @@ namespace officeline.repo
             return await _context.Users.FirstOrDefaultAsync(u => u.email == email);
         }
 
+        public async Task<int> GetMaxUserNumerOfACompanyAsync(int companyId)
+        {
+            int maxUserNumber = await _context.Users.Where(u=> u.CompanyId == companyId).
+            Select(u=> u.userNumber).MaxAsync()??0;
+            
+            return maxUserNumber;
+        }
+
 
         public async Task<UsersModel> AddUserAsync(UsersModel user){
             var result= await _context.Users.AddAsync(user);
 
             return result.Entity;
         }
-        public async Task<UsersModel> UpdateUserProfileAsync(int id,updateUserProfileDTO user)
+        public async Task UpdateUserAsync(UsersModel user)
         {
-            var existingUser =await GetUserByIdAsync(id);
-            if (existingUser == null)
-            {
-                return null;
-            }
-
-            existingUser.fName = user.fName;
-            existingUser.lName = user.lName;
-            existingUser.PhoneNumber = user.PhoneNumber;
-            existingUser.dob = user.dob;
-            existingUser.profile_pic = user.profilepic.ToString();
-
-            return existingUser;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
         }
+
+
+
+
 
         public async Task<bool> DeleteUserAsync(int id)
         {
-            var user=GetUserByIdAsync(id);
+            var user=await GetUserByIdAsync(id);
             if(user==null)
             {
                 return false;
             }
-            _context.Users.Remove(await user);;
+            _context.Users.Remove( user);;
             await SaveChangesAsync();
             return true;
         }

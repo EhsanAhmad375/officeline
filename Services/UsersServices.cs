@@ -13,6 +13,7 @@ using officeline.repo;
 using Microsoft.Extensions.Configuration;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using System.Formats.Asn1;
 namespace officeline.Services;
 
 
@@ -72,8 +73,7 @@ public class Users : IUsers
         string hashPassword=BCrypt.Net.BCrypt.HashPassword(createUserDTO.password);
 
 
-        var maxUserNumber=await _context.Users.Where(u=>u.CompanyId == createUserDTO.CompanyId)
-        .Select(u=>(int?)u.userNumber).MaxAsync()??0;
+        var maxUserNumber=await _userRepo.GetMaxUserNumerOfACompanyAsync(createUserDTO.CompanyId);
 
         int nextUserNumber=maxUserNumber+1;
 
@@ -143,7 +143,10 @@ public class Users : IUsers
     
     public async Task<List<GetAllUsersDTO>> GetAllUsersAsync(string role,int CompanyId)
     {
-        var query=_context.Users.AsQueryable();
+        var user=await _userRepo.GetAllUsersAsync();
+
+        var query=user.AsQueryable();
+
         if (role == "admin")
         {
         query=query.Where(u=>u.CompanyId==CompanyId);    
@@ -157,7 +160,6 @@ public class Users : IUsers
             role=u.role,
             CompanyId=u.CompanyId,
         }).ToListAsync();
-    
         return users;
     }
 
@@ -177,114 +179,98 @@ public class Users : IUsers
         var request = _httpContextAccessor.HttpContext?.Request;
         var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
 
-        var userDetail=await _context.Users.Where(u=> u.userId==userId).
-        Select(u=> new GetUserDetailDTO
-        {
-            userId=u.userId,
-            userNumber=u.userNumber,
-            fName=u.fName,
-            lName=u.lName,
-            email=u.email,
-            role=u.role,
-            PhoneNumber=u.PhoneNumber,
-            dob=u.dob,
-            CompanyId=u.CompanyId,
-            profilepic=!string.IsNullOrEmpty(u.profile_pic) 
-                 ? $"{baseUrl}/uploads/profiles/{u.profile_pic}" 
-                 : $"{baseUrl}/uploads/profiles/default_avatar.png"
-        }).FirstOrDefaultAsync();
-
+        var userDetail=await _userRepo.GetUserByIdAsync(userId);
         if (userDetail == null)
         {
             throw new ApiException("User", "User details not found.");
         }
-        return userDetail;
+        
+        return new GetUserDetailDTO
+        {
+            userId=userDetail.userId,
+            userNumber=userDetail.userNumber,
+            fName=userDetail.fName,
+            lName=userDetail.lName,
+            email=userDetail.email,
+            role=userDetail.role,
+            PhoneNumber=userDetail.PhoneNumber,
+            dob=userDetail.dob,
+            CompanyId=userDetail.CompanyId,
+            profilepic=!string.IsNullOrEmpty(userDetail.profile_pic) 
+                 ? $"{baseUrl}/uploads/profiles/{userDetail.profile_pic}" 
+                 : $"{baseUrl}/uploads/profiles/default_avatar.png"
+        };
     }
 
 
+public async Task<GetUserDetailDTO> UpdateUserProfile(updateUserProfileDTO updateUser)
+{
+    var userIdClaimed = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userIdClaimed)) throw new ApiException("user", "Unauthorized access");
+    
+    int userId = int.Parse(userIdClaimed);
 
-    public async Task<GetUserDetailDTO> UpdateUserProfile(updateUserProfileDTO updateUser)
+    var user = await _userRepo.GetUserByIdAsync(userId);
+    if (user == null) throw new ApiException("user", "User not found");
+
+    if (updateUser.profilepic != null && updateUser.profilepic.Length > 0)
     {
-        var userIdClaimed=_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userIdClaimed))
-        {
-            throw new ApiException("user","Unauthorized access");
-        }
-
-        int userId=int.Parse(userIdClaimed);
-
-        var user=await _context.Users.FindAsync(userId);
-        if (user == null)
-        {
-            throw new ApiException("user","user not found");
-        }
-        if (updateUser.profilepic != null && updateUser.profilepic.Length > 0)
-    {
-        // Folder path jahan image save hogi (wwwroot/uploads/profiles)
         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
-        if (!Directory.Exists(uploadsFolder))
-        {
-             Directory.CreateDirectory(uploadsFolder);
-        }
+        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-        // Unique file name banayein taaki overwrite na ho
         var fileName = Guid.NewGuid().ToString() + Path.GetExtension(updateUser.profilepic.FileName);
         var filePath = Path.Combine(uploadsFolder, fileName);
 
-        // File ko save karein
+        
         using (var stream = new FileStream(filePath, FileMode.Create))
         {
             await updateUser.profilepic.CopyToAsync(stream);
         }
 
-        // Purani image delete karne ka logic (Optional but recommended)
         if (!string.IsNullOrEmpty(user.profile_pic) && user.profile_pic != "default_avatar.png")
         {
             var oldPath = Path.Combine(uploadsFolder, user.profile_pic);
             if (File.Exists(oldPath)) File.Delete(oldPath);
         }
 
-        // Database column update karein
         user.profile_pic = fileName; 
     }
+
+    user.fName = updateUser.fName;
+    user.lName = updateUser.lName;
+    user.dob = updateUser.dob;
+    user.PhoneNumber = updateUser.PhoneNumber;
+
+    await _userRepo.UpdateUserAsync(user);
+
     var request = _httpContextAccessor.HttpContext?.Request;
     var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
 
-            user.fName = updateUser.fName;
-            user.lName = updateUser.lName;
-            user.dob=updateUser.dob;
-            user.PhoneNumber=updateUser.PhoneNumber;
-
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-            return new GetUserDetailDTO{
-                userId = user.userId,
-                fName = user.fName,
-                lName = user.lName,
-                email = user.email,
-                role = user.role,
-                CompanyId = user.CompanyId,
-                profilepic=!string.IsNullOrEmpty(user.profile_pic) 
+    return new GetUserDetailDTO
+    {
+        userId = user.userId,
+        fName = user.fName,
+        lName = user.lName,
+        email = user.email,
+        role = user.role,
+        CompanyId = user.CompanyId,
+        profilepic = !string.IsNullOrEmpty(user.profile_pic) 
                  ? $"{baseUrl}/uploads/profiles/{user.profile_pic}" 
-                 : $"{baseUrl}/uploads/profiles/default_avatar.png", 
-                
+                 : $"{baseUrl}/uploads/profiles/default_avatar.png"
     };
-    }
-
-
+}
 
     public async Task<bool> DeleteUser(int UserId)
     {
-        var user=await _context.Users.FindAsync(UserId);
-        if (user == null)
+        var user=await _userRepo.DeleteUserAsync(UserId);
+        if (user == false)
         {
             throw new ApiException("user","user not found");
         }
 
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-
         return true;
     }
+
+
 }
+ 
