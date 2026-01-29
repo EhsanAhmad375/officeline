@@ -23,7 +23,7 @@ namespace officeline.Controllers
         }
 
 
-        [Authorize(Roles="superadmin,admin")]
+        // [Authorize(Roles="superadmin,admin")]
         [HttpPost("create")]
         public async Task<ActionResult<UsersModel>> CreateUsers([FromBody] CreateUserDTO createUserDTO)
         {

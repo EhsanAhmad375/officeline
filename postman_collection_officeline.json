@@ -1,0 +1,176 @@
+{
+  "info": {
+    "name": "OfficeLine API - Postman Collection",
+    "_postman_id": "officeline-collection-001",
+    "description": "Collection for OfficeLine API endpoints (Users, Companies, Chats, SignalR helper).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "jwt", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "description": "User-related endpoints",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/User/login", "host": ["{{baseUrl}}"], "path": ["api","User","login"] }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fName\": \"John\",\n  \"lName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"CompanyId\": 1,\n  \"password\": \"SecretPass123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/User/create", "host": ["{{baseUrl}}"], "path": ["api","User","create"] }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/User/users", "host": ["{{baseUrl}}"], "path": ["api","User","users"] }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/User/profile", "host": ["{{baseUrl}}"], "path": ["api","User","profile"] }
+          }
+        },
+        {
+          "name": "Update Profile (form-data)",
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "fName", "value": "John", "type": "text" },
+                { "key": "lName", "value": "Doe", "type": "text" },
+                { "key": "PhoneNumber", "value": "+1234567890", "type": "text" },
+                { "key": "dob", "value": "1990-01-01", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/User/update", "host": ["{{baseUrl}}"], "path": ["api","User","update"] }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/User/delete/:userId", "host": ["{{baseUrl}}"], "path": ["api","User","delete",":userId"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "description": "Company management endpoints",
+      "item": [
+        {
+          "name": "Create Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Name\": \"Acme Co\",\n  \"Email\": \"info@acme.example\",\n  \"CompleteAddress\": \"123 Main St, Suite 100\",\n  \"PhoneNumber\": \"+15551234567\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/Company/create", "host": ["{{baseUrl}}"], "path": ["api","Company","create"] }
+          }
+        },
+        {
+          "name": "Get All Companies",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/Company/all", "host": ["{{baseUrl}}"], "path": ["api","Company","all"] }
+          }
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Name\": \"Acme Co Updated\",\n  \"Email\": \"contact@acme.example\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/Company/update/:companyId", "host": ["{{baseUrl}}"], "path": ["api","Company","update",":companyId"] }
+          }
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/Company/delete/:companyId", "host": ["{{baseUrl}}"], "path": ["api","Company","delete",":companyId"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chats",
+      "description": "Chat endpoints (requires JWT)",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"ReceiverId\": 2,\n  \"Message\": \"Hello from Postman\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/Chats/send", "host": ["{{baseUrl}}"], "path": ["api","Chats","send"] }
+          }
+        },
+        {
+          "name": "Get Conversation Between Users",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "url": { "raw": "{{baseUrl}}/api/Chats/between/:userId", "host": ["{{baseUrl}}"], "path": ["api","Chats","between",":userId"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SignalR Helper",
+      "item": [
+        {
+          "name": "SignalR - WebSocket connect (example)",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+            "url": { "raw": "ws://localhost:5000/chatsHub?access_token={{jwt}}", "protocol": "ws", "host": ["localhost:5000"], "path": ["chatsHub"] },
+            "description": "Use a WebSocket/SignalR client to connect: ws://<host>/chatsHub?access_token={{jwt}}\nPostman supports WebSocket; use this as a helper reference."
+          }
+        }
+      ]
+    }
+  ]
+}
