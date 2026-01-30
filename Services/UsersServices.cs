@@ -51,14 +51,14 @@ public class Users : IUsers
 
     public async Task<CreateUserDTO> CreateUserAsync(CreateUserDTO createUserDTO, string creatorRole, int creatorCompanyId)
     {
-        if (creatorRole.ToLower() == "admin")
-        {
-            if (creatorCompanyId != createUserDTO.CompanyId)
-            {
-            throw new ApiException("CompanyId","you cannot create user of other company");    
-            }
+        // if (creatorRole.ToLower() == "admin")
+        // {
+        //     if (creatorCompanyId != createUserDTO.CompanyId)
+        //     {
+        //     throw new ApiException("CompanyId","you cannot create user of other company");    
+        //     }
             
-        }
+        // }
         var emailExist=await _userRepo.GetUserByEmailAsync(createUserDTO.email) != null;
         if (emailExist)
         {
