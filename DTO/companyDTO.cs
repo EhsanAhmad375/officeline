@@ -27,6 +27,7 @@ namespace officeline.DTO
 
     public class CompanyDetailsDTO
     {
+        public int Id { get; set; }
         public int CompanyId { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }

@@ -127,6 +127,11 @@ builder.Services.AddScoped<officeline.Services.ICompanyServices, officeline.Serv
 builder.Services.AddScoped<officeline.Services.IUsers, officeline.Services.Users>(); 
 builder.Services.AddScoped<officeline.repo.IChatRepo, officeline.repo.ChatsRepo>();
 builder.Services.AddScoped<officeline.Services.IChatService, officeline.Services.ChatService>();
+builder.Services.AddScoped<officeline.repo.IProductRepo, officeline.repo.ProductRepo>();
+builder.Services.AddScoped<officeline.Services.IProductServices, officeline.Services.ProductServices>();
+builder.Services.AddScoped<officeline.repo.IOrderRepo, officeline.repo.OrderRepo>();
+builder.Services.AddScoped<officeline.Services.IOrderService, officeline.Services.OrderService>();
+
 
 var app = builder.Build();
 app.UseStaticFiles();

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using officeline.Data;
 
@@ -11,9 +12,11 @@ using officeline.Data;
 namespace officeline.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260202164820_SyncUserIdColumn")]
+    partial class SyncUserIdColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,9 +118,6 @@ namespace officeline.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("OrderNumber")
-                        .HasColumnType("int");
-
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -193,13 +193,20 @@ namespace officeline.Migrations
                         .HasColumnType("int")
                         .HasColumnName("userId");
 
+                    b.Property<int>("userId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("userId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", t =>
+                        {
+                            t.Property("userId")
+                                .HasColumnName("userId1");
+                        });
                 });
 
             modelBuilder.Entity("officeline.Models.UsersModel", b =>
@@ -293,7 +300,7 @@ namespace officeline.Migrations
 
                     b.HasOne("officeline.Models.UsersModel", "users")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("userId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

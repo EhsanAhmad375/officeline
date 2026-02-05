@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using officeline.Data;
 
@@ -11,9 +12,11 @@ using officeline.Data;
 namespace officeline.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260201145826_AddPaymentStatusToOrders")]
+    partial class AddPaymentStatusToOrders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,9 +118,6 @@ namespace officeline.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("OrderNumber")
-                        .HasColumnType("int");
-
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -190,14 +190,16 @@ namespace officeline.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("userId");
+                        .HasColumnType("int");
+
+                    b.Property<int>("usersuserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("usersuserId");
 
                     b.ToTable("Products");
                 });
@@ -293,7 +295,7 @@ namespace officeline.Migrations
 
                     b.HasOne("officeline.Models.UsersModel", "users")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("usersuserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

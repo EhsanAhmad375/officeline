@@ -83,7 +83,7 @@ public class Users : IUsers
           email=createUserDTO.email,
           CompanyId=createUserDTO.CompanyId,
           userNumber=nextUserNumber,
-          role="employee", 
+          role=createUserDTO.role?? "employee", 
           password=hashPassword  
         };
         await _userRepo.AddUserAsync(user);

@@ -1,5 +1,6 @@
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/appsettings.Development.json
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/appsettings.json
+/Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/postman_collection_officeline.json
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/officeline.staticwebassets.runtime.json
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/officeline.staticwebassets.endpoints.json
 /Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/officeline
@@ -136,4 +137,3 @@
 /Users/ehsanahmad/Documents/dotnet/officeline/obj/Debug/net9.0/officeline.pdb
 /Users/ehsanahmad/Documents/dotnet/officeline/obj/Debug/net9.0/officeline.genruntimeconfig.cache
 /Users/ehsanahmad/Documents/dotnet/officeline/obj/Debug/net9.0/ref/officeline.dll
-/Users/ehsanahmad/Documents/dotnet/officeline/bin/Debug/net9.0/postman_collection_officeline.json

@@ -32,7 +32,6 @@ namespace officeline.Controllers
                 return BadRequest(new {success=false, message="User not created",error=ModelState });
                 
             }
-
             try
             {
                 var creatorRole=User.FindFirst(ClaimTypes.Role)?.Value;
